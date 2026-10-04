@@ -4,7 +4,6 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Score de Risco de Desligamento</title>
-<link rel="icon" href="logo.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap">
 <link rel="stylesheet" href="brand.css">
@@ -25,8 +24,7 @@
 body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.55 var(--f-body); }
 .bar { background: var(--brand-dark); color: var(--brand-ink); }
 .bar .in { max-width: 1040px; margin: 0 auto; padding: 12px 16px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
-.bar img { height: 36px; width: auto; display: block; }
-.bar .app { font: 600 15px var(--f-body); opacity: .9; padding-left: 16px; border-left: 1px solid color-mix(in srgb, var(--brand-ink) 35%, transparent); }
+.bar .app { font: 600 15px var(--f-body); }
 .bar .who { margin-left: auto; display: flex; gap: 10px; align-items: center; font-size: 13.5px; }
 .bar .who button { background: transparent; color: inherit; border: 1px solid color-mix(in srgb, var(--brand-ink) 45%, transparent); border-radius: 6px; padding: 5px 10px; font: inherit; cursor: pointer; }
 .wrap { max-width: 1040px; margin: 0 auto; padding-inline: 16px; padding-block: 24px 64px; display: grid; gap: 20px; }
@@ -105,7 +103,6 @@ footer { color: var(--muted); font-size: 12.5px; max-width: 80ch; }
 </head>
 <body>
 <div class="bar"><div class="in">
-  <img src="logo.svg" alt="Logo da empresa">
   <span class="app">Score de Risco de Desligamento</span>
   <span class="who" id="who" hidden><span id="whoName"></span><button type="button" id="sair">Sair</button></span>
 </div></div>
