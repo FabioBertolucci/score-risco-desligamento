@@ -1,0 +1,17 @@
+{
+  "name": "score-risco-desligamento",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Ferramenta interna de RH: score de risco de desligamento precoce a partir do currículo e da entrevista, com ranking compartilhado.",
+  "type": "module",
+  "main": "server.js",
+  "engines": { "node": ">=22.13" },
+  "scripts": {
+    "start": "node --no-warnings=ExperimentalWarning server.js",
+    "dev": "MOCK_CLAUDE=1 APP_PASSWORD=teste SESSION_SECRET=dev node --no-warnings=ExperimentalWarning server.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.131.0",
+    "express": "^5.2.1"
+  }
+}

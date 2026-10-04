@@ -1,0 +1,16 @@
+/*
+  IDENTIDADE VISUAL — troque só este arquivo e o public/logo.svg.
+  As cores abaixo são provisórias. Substitua pelos códigos do manual de marca da empresa:
+  --brand        cor principal (botões, aba ativa, destaques)
+  --brand-ink    cor do texto sobre a cor principal (geralmente branco)
+  --brand-soft   versão bem clara da cor principal (fundos de aviso, linha selecionada)
+  --brand-dark   versão escura, usada na faixa do topo
+*/
+:root {
+  --brand: #1f5f5b;
+  --brand-ink: #ffffff;
+  --brand-soft: #e3efed;
+  --brand-dark: #173f3d;
+  --f-display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --f-body: "Instrument Sans", "Segoe UI", system-ui, sans-serif;
+}

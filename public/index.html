@@ -1,0 +1,391 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Score de Risco de Desligamento</title>
+<link rel="icon" href="logo.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap">
+<link rel="stylesheet" href="brand.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+<style>
+/* Cores da marca vêm de brand.css; aqui ficam neutros e cores de risco. */
+:root {
+  --bg: #f5f6f4; --surface: #ffffff; --ink: #18201e; --muted: #5c6763; --line: #dde2df;
+  --accent: var(--brand); --accent-ink: var(--brand-ink); --accent-soft: var(--brand-soft);
+  --low: #2e7d4f; --low-bg: #e4f3ea; --mid: #9a6a00; --mid-bg: #fbf0d6; --high: #b3362c; --high-bg: #f9e3e0;
+  --f-mono: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.55 var(--f-body); }
+.bar { background: var(--brand-dark); color: var(--brand-ink); }
+.bar .in { max-width: 1040px; margin: 0 auto; padding: 12px 16px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.bar img { height: 36px; width: auto; display: block; }
+.bar .app { font: 600 15px var(--f-body); opacity: .9; padding-left: 16px; border-left: 1px solid color-mix(in srgb, var(--brand-ink) 35%, transparent); }
+.bar .who { margin-left: auto; display: flex; gap: 10px; align-items: center; font-size: 13.5px; }
+.bar .who button { background: transparent; color: inherit; border: 1px solid color-mix(in srgb, var(--brand-ink) 45%, transparent); border-radius: 6px; padding: 5px 10px; font: inherit; cursor: pointer; }
+.wrap { max-width: 1040px; margin: 0 auto; padding-inline: 16px; padding-block: 24px 64px; display: grid; gap: 20px; }
+header.top { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 12px 24px; }
+h1 { font: 700 clamp(24px, 4vw, 32px)/1.15 var(--f-display); margin: 0; text-wrap: balance; letter-spacing: -0.01em; }
+.sub { color: var(--muted); margin: 4px 0 0; max-width: 62ch; }
+.tabs { display: inline-flex; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 3px; gap: 2px; }
+.tabs button { border: 0; background: transparent; color: var(--muted); font: 600 14px var(--f-body); padding: 8px 16px; border-radius: 7px; cursor: pointer; }
+.tabs button[aria-selected="true"] { background: var(--accent); color: var(--accent-ink); }
+.notice { display: flex; gap: 10px; align-items: flex-start; background: var(--accent-soft); border-radius: 10px; padding: 12px 14px; font-size: 13.5px; }
+.notice b { font-weight: 600; }
+.notice .ico { flex: none; width: 18px; height: 18px; margin-top: 2px; color: var(--accent); }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 20px; display: grid; gap: 16px; min-width: 0; }
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+.field { display: grid; gap: 6px; min-width: 0; }
+label, .lbl { font-weight: 600; font-size: 13px; letter-spacing: 0.02em; }
+.hint { color: var(--muted); font-size: 12.5px; font-weight: 400; letter-spacing: 0; }
+input[type="text"], input[type="password"], textarea, select { width: 100%; font: inherit; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 9px 11px; }
+textarea { min-height: 200px; resize: vertical; line-height: 1.5; }
+input:focus-visible, textarea:focus-visible, select:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.filebar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: 13px; color: var(--muted); }
+.btn { font: 600 14px var(--f-body); border-radius: 8px; padding: 10px 18px; cursor: pointer; border: 1px solid var(--line); background: var(--surface); color: var(--ink); }
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.btn.small { padding: 6px 12px; font-size: 13px; }
+.btn.danger { color: var(--high); }
+.btn:disabled { opacity: 0.55; cursor: not-allowed; }
+.actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.status { font-size: 13.5px; color: var(--muted); }
+.status.err { color: var(--high); }
+.drop.over { border-color: var(--accent); background: var(--accent-soft); }
+.result { display: grid; grid-template-columns: 180px 1fr; gap: 20px; align-items: start; }
+@media (max-width: 620px) { .result { grid-template-columns: 1fr; } }
+.gauge { display: grid; gap: 8px; justify-items: start; }
+.score { font: 700 56px/1 var(--f-display); font-variant-numeric: tabular-nums; }
+.score small { font: 500 16px var(--f-mono); color: var(--muted); }
+.meter { width: 100%; height: 8px; border-radius: 4px; background: linear-gradient(90deg, var(--low) 0 33%, var(--mid) 33% 66%, var(--high) 66% 100%); position: relative; }
+.meter i { position: absolute; top: -4px; width: 4px; height: 16px; border-radius: 2px; background: var(--ink); transform: translateX(-2px); }
+.pill { display: inline-flex; align-items: center; gap: 6px; font: 600 12.5px var(--f-body); padding: 3px 10px; border-radius: 999px; white-space: nowrap; }
+.pill::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.pill.baixo { color: var(--low); background: var(--low-bg); }
+.pill.moderado { color: var(--mid); background: var(--mid-bg); }
+.pill.alto { color: var(--high); background: var(--high-bg); }
+.detail { display: grid; gap: 14px; min-width: 0; }
+.detail h3 { font: 600 13px var(--f-body); text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin: 0 0 6px; }
+.detail p { margin: 0; max-width: 70ch; }
+.factors { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.factors li { display: grid; gap: 2px; padding-left: 12px; border-left: 3px solid var(--line); }
+.factors.risk li { border-color: var(--high); }
+.factors.prot li { border-color: var(--low); }
+.factors q { color: var(--muted); font-size: 13.5px; font-style: italic; }
+.meta { color: var(--muted); font-size: 12.5px; }
+.toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.toolbar input { flex: 1 1 220px; }
+.toolbar select { flex: 0 1 200px; }
+.summary { display: flex; flex-wrap: wrap; gap: 8px 18px; font-size: 13.5px; color: var(--muted); }
+.summary b { color: var(--ink); font-variant-numeric: tabular-nums; }
+.tablewrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; min-width: 640px; }
+th { text-align: left; font: 600 12px var(--f-body); text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); padding: 8px 10px; border-bottom: 1px solid var(--line); }
+td { padding: 12px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+td.pos, td.nota { font: 500 14px var(--f-mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+td.nome { font-weight: 600; }
+td.nome .meta { font-weight: 400; display: block; }
+td.res { font-size: 14px; max-width: 52ch; }
+tr.row { cursor: pointer; }
+tr.row:hover td, tr.open td { background: var(--accent-soft); }
+tr.exp td { background: var(--bg); padding: 18px 16px; }
+.empty { text-align: center; color: var(--muted); padding: 36px 16px; display: grid; gap: 10px; justify-items: center; }
+.empty strong { color: var(--ink); font: 600 17px var(--f-display); }
+.review { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.review select { width: auto; }
+.confirm { display: inline-flex; gap: 8px; align-items: center; font-size: 13px; }
+.login { max-width: 400px; margin: 48px auto; }
+footer { color: var(--muted); font-size: 12.5px; max-width: 80ch; }
+</style>
+</head>
+<body>
+<div class="bar"><div class="in">
+  <img src="logo.svg" alt="Logo da empresa">
+  <span class="app">Score de Risco de Desligamento</span>
+  <span class="who" id="who" hidden><span id="whoName"></span><button type="button" id="sair">Sair</button></span>
+</div></div>
+
+<!-- LOGIN -->
+<div class="wrap" id="view-login" hidden>
+  <form class="panel login" id="loginForm">
+    <h1 style="font-size:24px">Entrar</h1>
+    <div class="field"><label for="lnome">Seu nome</label><input type="text" id="lnome" autocomplete="name" required></div>
+    <div class="field"><label for="lsenha">Senha de acesso</label><input type="password" id="lsenha" autocomplete="current-password" required><span class="hint">Peça a senha ao gestor de RH.</span></div>
+    <div class="actions"><button class="btn primary" type="submit">Entrar</button><span class="status" id="lstatus"></span></div>
+  </form>
+</div>
+
+<!-- APP -->
+<div class="wrap" id="view-app" hidden>
+  <header class="top">
+    <div>
+      <h1>Score de Risco de Desligamento</h1>
+      <p class="sub">Estime o risco de desligamento precoce a partir do currículo e da entrevista do RH. Cada avaliação entra no ranking compartilhado com os demais analistas.</p>
+    </div>
+    <div class="tabs" role="tablist">
+      <button role="tab" id="tab-avaliar" aria-selected="true">Avaliar</button>
+      <button role="tab" id="tab-ranking" aria-selected="false">Ranking <span id="tab-count"></span></button>
+    </div>
+  </header>
+
+  <div class="notice" role="note">
+    <svg class="ico" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="10" cy="10" r="8"/><path d="M10 6v5M10 14h.01" stroke-linecap="round"/></svg>
+    <div><b>Apoio à decisão, não decisão.</b> O score é uma estimativa feita por IA e precisa de revisão de um analista antes de qualquer uso. Ele não considera idade, gênero, raça, estado civil, gravidez, religião, deficiência, saúde, orientação sexual, origem ou endereço. Os dados são pessoais e devem ser tratados conforme a LGPD.</div>
+  </div>
+
+  <section id="view-avaliar" style="display:grid;gap:20px">
+    <form class="panel" id="form">
+      <div class="grid2">
+        <div class="field"><label for="nome">Nome do funcionário ou candidato</label><input type="text" id="nome" required autocomplete="off" placeholder="Ex.: João Pereira"></div>
+        <div class="field"><label for="vaga">Vaga e condições <span class="hint">(opcional)</span></label><input type="text" id="vaga" autocomplete="off" placeholder="Ex.: Operador de produção, 3º turno, linha de montagem"></div>
+      </div>
+      <div class="grid2">
+        <div class="field">
+          <label for="cv">Currículo</label>
+          <div class="filebar">
+            <label class="btn small" for="cvfile">Enviar arquivo</label>
+            <input type="file" id="cvfile" accept=".pdf,.docx,.txt,.md" hidden>
+            <span id="cvfile-status">PDF, DOCX ou TXT, ou cole o texto abaixo</span>
+          </div>
+          <textarea id="cv" class="drop" placeholder="Cole aqui o texto do currículo, ou arraste o arquivo para esta caixa."></textarea>
+        </div>
+        <div class="field">
+          <label for="entrevista">Comentários da entrevista do RH</label>
+          <div class="filebar"><span>Anotações do analista: motivação, expectativas, dúvidas, pontos de atenção.</span></div>
+          <textarea id="entrevista" placeholder="Ex.: Disse que procura estabilidade. Perguntou duas vezes sobre a possibilidade de mudar de turno. Saiu do último emprego após 2 meses por causa do horário."></textarea>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="btn primary" type="submit" id="go">Calcular score</button>
+        <button class="btn" type="button" id="clear">Limpar campos</button>
+        <span class="status" id="status" aria-live="polite"></span>
+      </div>
+    </form>
+    <article class="panel" id="result" hidden aria-live="polite"></article>
+  </section>
+
+  <section id="view-ranking" hidden style="display:grid;gap:16px">
+    <div class="panel">
+      <div class="toolbar">
+        <input type="text" id="busca" placeholder="Buscar por nome ou vaga" aria-label="Buscar">
+        <select id="filtro" aria-label="Filtrar por classificação">
+          <option value="">Todas as classificações</option>
+          <option value="baixo">Risco baixo</option>
+          <option value="moderado">Risco moderado</option>
+          <option value="alto">Risco alto</option>
+        </select>
+        <button class="btn small" type="button" id="atualizar">Atualizar</button>
+      </div>
+      <div class="summary" id="summary"></div>
+      <div class="tablewrap"><table>
+        <thead><tr><th>#</th><th>Nome</th><th>Nota</th><th>Classificação</th><th>Resumo</th></tr></thead>
+        <tbody id="tbody"></tbody>
+      </table></div>
+      <div class="empty" id="empty">
+        <strong>Nenhuma avaliação ainda</strong>
+        <span>As avaliações feitas na aba Avaliar aparecem aqui, da menor para a maior nota de risco.</span>
+      </div>
+    </div>
+  </section>
+
+  <footer>Escala da nota: 0 a 33 risco baixo, 34 a 66 moderado, 67 a 100 alto. O ranking vai do menor risco (topo) ao maior risco (fim). Clique numa linha para ver os fatores, as evidências citadas e registrar a revisão do analista.</footer>
+</div>
+
+<script>
+(() => {
+  const $ = (s) => document.querySelector(s);
+  let rows = [], openId = null, confirmDel = null;
+
+  const classLabel = { baixo: "Risco baixo", moderado: "Risco moderado", alto: "Risco alto" };
+  const el = (tag, attrs = {}, ...kids) => {
+    const e = document.createElement(tag);
+    for (const [k, v] of Object.entries(attrs)) {
+      if (k === "class") e.className = v; else if (k === "text") e.textContent = v;
+      else if (k.startsWith("on")) e.addEventListener(k.slice(2), v); else e.setAttribute(k, v);
+    }
+    for (const k of kids) if (k != null) e.append(k);
+    return e;
+  };
+  const pill = (c) => el("span", { class: "pill " + c, text: classLabel[c] });
+  const fmtDate = (iso) => { try { return new Date(iso).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" }); } catch { return ""; } };
+  const setStatus = (t, err) => { const s = $("#status"); s.textContent = t; s.classList.toggle("err", !!err); };
+
+  async function api(method, url, body) {
+    const r = await fetch(url, { method, headers: body ? { "Content-Type": "application/json" } : {}, body: body ? JSON.stringify(body) : undefined });
+    const data = await r.json().catch(() => ({}));
+    if (r.status === 401 && url !== "/api/login") { showLogin(); throw new Error("Sua sessão expirou. Entre de novo."); }
+    if (!r.ok) throw new Error(data.erro || "Erro inesperado. Tente novamente.");
+    return data;
+  }
+
+  // ---------- login ----------
+  function showLogin() { $("#view-app").hidden = true; $("#who").hidden = true; $("#view-login").hidden = false; }
+  function showApp(nome) { $("#view-login").hidden = true; $("#view-app").hidden = false; $("#who").hidden = false; $("#whoName").textContent = nome; carregar(); }
+  $("#loginForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    $("#lstatus").textContent = "";
+    try { const r = await api("POST", "/api/login", { nome: $("#lnome").value, senha: $("#lsenha").value }); $("#lsenha").value = ""; showApp(r.nome); }
+    catch (err) { $("#lstatus").textContent = err.message; $("#lstatus").classList.add("err"); }
+  });
+  $("#sair").onclick = async () => { await api("POST", "/api/logout").catch(() => {}); rows = []; showLogin(); };
+
+  // ---------- abas ----------
+  function showTab(name) {
+    const isRank = name === "ranking";
+    $("#tab-avaliar").setAttribute("aria-selected", String(!isRank));
+    $("#tab-ranking").setAttribute("aria-selected", String(isRank));
+    $("#view-avaliar").hidden = isRank;
+    $("#view-ranking").hidden = !isRank;
+    if (isRank) carregar();
+  }
+  $("#tab-avaliar").onclick = () => showTab("avaliar");
+  $("#tab-ranking").onclick = () => showTab("ranking");
+  $("#atualizar").onclick = carregar;
+
+  // ---------- leitura de arquivo ----------
+  async function readFile(file) {
+    const name = file.name.toLowerCase();
+    if (name.endsWith(".pdf")) {
+      if (!window.pdfjsLib) throw new Error("Leitor de PDF não carregou. Cole o texto do currículo.");
+      const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(await file.arrayBuffer()) }).promise;
+      const out = [];
+      for (let i = 1; i <= Math.min(pdf.numPages, 15); i++) {
+        const tc = await (await pdf.getPage(i)).getTextContent();
+        out.push(tc.items.map((it) => it.str + (it.hasEOL ? "\n" : " ")).join(""));
+      }
+      const text = out.join("\n\n").trim();
+      if (!text) throw new Error("O PDF parece ser uma imagem escaneada, sem texto. Cole o texto do currículo.");
+      return text;
+    }
+    if (name.endsWith(".docx")) {
+      if (!window.mammoth) throw new Error("Leitor de DOCX não carregou. Cole o texto do currículo.");
+      return (await mammoth.extractRawText({ arrayBuffer: await file.arrayBuffer() })).value.trim();
+    }
+    if (name.endsWith(".doc")) throw new Error("Arquivos .doc antigos não são lidos. Salve como PDF ou DOCX, ou cole o texto.");
+    return (await file.text()).trim();
+  }
+  async function loadCv(file) {
+    const st = $("#cvfile-status");
+    st.textContent = "Lendo " + file.name + "…";
+    try { $("#cv").value = await readFile(file); st.textContent = file.name + " carregado. Confira o texto abaixo."; }
+    catch (e) { st.textContent = e.message || "Não foi possível ler o arquivo."; }
+  }
+  $("#cvfile").onchange = (e) => { const f = e.target.files[0]; if (f) loadCv(f); e.target.value = ""; };
+  const cvBox = $("#cv");
+  cvBox.addEventListener("dragover", (e) => { e.preventDefault(); cvBox.classList.add("over"); });
+  cvBox.addEventListener("dragleave", () => cvBox.classList.remove("over"));
+  cvBox.addEventListener("drop", (e) => { cvBox.classList.remove("over"); const f = e.dataTransfer?.files?.[0]; if (f) { e.preventDefault(); loadCv(f); } });
+
+  // ---------- avaliar ----------
+  $("#form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const body = { nome: $("#nome").value.trim(), vaga: $("#vaga").value.trim(), curriculo: $("#cv").value.trim(), entrevista: $("#entrevista").value.trim() };
+    if (!body.nome) return setStatus("Informe o nome.", true);
+    if (!body.curriculo && !body.entrevista) return setStatus("Inclua o currículo, os comentários da entrevista ou os dois.", true);
+    $("#go").disabled = true;
+    setStatus("Analisando o currículo e a entrevista… isso costuma levar de 15 a 60 segundos.");
+    try {
+      const r = await api("POST", "/api/avaliar", body);
+      renderResult(r, $("#result"));
+      $("#result").hidden = false;
+      setStatus("Avaliação salva no ranking.");
+    } catch (err) { setStatus(err.message, true); }
+    finally { $("#go").disabled = false; }
+  });
+  $("#clear").onclick = () => { for (const id of ["nome", "vaga", "cv", "entrevista"]) $("#" + id).value = ""; $("#cvfile-status").textContent = "PDF, DOCX ou TXT, ou cole o texto abaixo"; $("#result").hidden = true; setStatus(""); };
+
+  function factorList(items, kind) {
+    if (!items?.length) return el("p", { class: "meta", text: "Nenhum identificado no texto." });
+    return el("ul", { class: "factors " + kind }, ...items.map((f) => el("li", {}, el("span", { text: f.fator }), f.evidencia ? el("q", { text: f.evidencia }) : null)));
+  }
+  function renderResult(r, host, opts = {}) {
+    host.replaceChildren();
+    const gauge = el("div", { class: "gauge" },
+      el("div", { class: "lbl", text: "Nota de risco" }),
+      el("div", { class: "score" }, String(r.nota), el("small", { text: " /100" })),
+      el("div", { class: "meter", "aria-hidden": "true" }, el("i", { style: `left:${r.nota}%` })),
+      pill(r.classificacao),
+      r.confianca ? el("div", { class: "meta", text: "Confiança da análise: " + r.confianca }) : null);
+    const detail = el("div", { class: "detail" },
+      opts.inRanking ? null : el("div", {}, el("h3", { text: r.nome }), r.vaga ? el("div", { class: "meta", text: r.vaga }) : null),
+      el("div", {}, el("h3", { text: "Por que essa nota" }), el("p", { text: r.resumo || "Sem resumo." })),
+      el("div", { class: "grid2" },
+        el("div", {}, el("h3", { text: "Fatores de risco" }), factorList(r.fatores_risco, "risk")),
+        el("div", {}, el("h3", { text: "Fatores de proteção" }), factorList(r.fatores_protecao, "prot"))),
+      r.pontos_a_verificar?.length ? el("div", {}, el("h3", { text: "O analista deve verificar" }), el("ul", { style: "margin:0;padding-left:18px" }, ...r.pontos_a_verificar.map((p) => el("li", { text: p })))) : null,
+      opts.extra || null);
+    host.append(el("div", { class: "result" }, gauge, detail));
+  }
+
+  // ---------- ranking ----------
+  async function carregar() {
+    try { rows = await api("GET", "/api/avaliacoes"); renderRanking(); } catch {}
+  }
+  function reviewControls(r) {
+    const sel = el("select", { "aria-label": "Revisão do analista" },
+      ...[["pendente", "Revisão pendente"], ["confirmada", "Revisada: nota confirmada"], ["contestada", "Revisada: nota contestada"]].map(([v, t]) => { const o = el("option", { value: v, text: t }); if (r.revisao === v) o.selected = true; return o; }));
+    const note = el("input", { type: "text", placeholder: "Comentário da revisão (opcional)", style: "flex:1 1 220px" });
+    note.value = r.notaRevisao || "";
+    const msg = el("span", { class: "meta" });
+    const save = el("button", { class: "btn small", type: "button", text: "Salvar revisão", onclick: async () => {
+      save.disabled = true;
+      try { const u = await api("PATCH", "/api/avaliacoes/" + r.id, { revisao: sel.value, notaRevisao: note.value }); Object.assign(r, u); msg.textContent = "Revisão salva."; }
+      catch (e) { msg.textContent = e.message; } finally { save.disabled = false; }
+    } });
+    const del = confirmDel === r.id
+      ? el("span", { class: "confirm" }, "Excluir esta avaliação?",
+          el("button", { class: "btn small danger", type: "button", text: "Excluir", onclick: async () => { try { await api("DELETE", "/api/avaliacoes/" + r.id); rows = rows.filter((x) => x.id !== r.id); openId = null; } catch (e) { msg.textContent = e.message; } confirmDel = null; renderRanking(); } }),
+          el("button", { class: "btn small", type: "button", text: "Cancelar", onclick: () => { confirmDel = null; renderRanking(); } }))
+      : el("button", { class: "btn small danger", type: "button", text: "Excluir", onclick: () => { confirmDel = r.id; renderRanking(); } });
+    return el("div", { style: "display:grid;gap:8px" }, el("h3", { text: "Revisão do analista" }),
+      el("div", { class: "review" }, sel, note, save, del, msg),
+      el("div", { class: "meta", text: "Avaliado em " + fmtDate(r.criadoEm) + (r.autor ? " por " + r.autor : "") + (r.revisadoEm ? " · revisado em " + fmtDate(r.revisadoEm) + (r.revisor ? " por " + r.revisor : "") : "") }));
+  }
+  function renderRanking() {
+    const q = $("#busca").value.trim().toLowerCase(), f = $("#filtro").value;
+    const sorted = [...rows].sort((a, b) => a.nota - b.nota || a.nome.localeCompare(b.nome, "pt-BR"));
+    const pos = new Map(sorted.map((r, i) => [r.id, i + 1]));
+    const list = sorted.filter((r) => (!f || r.classificacao === f) && (!q || (r.nome + " " + (r.vaga || "")).toLowerCase().includes(q)));
+    const tb = $("#tbody"); tb.replaceChildren();
+    for (const r of list) {
+      const tr = el("tr", { class: "row" + (openId === r.id ? " open" : ""), tabindex: "0", "aria-expanded": String(openId === r.id) },
+        el("td", { class: "pos", text: String(pos.get(r.id)) }),
+        el("td", { class: "nome" }, r.nome, r.vaga ? el("span", { class: "meta", text: r.vaga }) : null),
+        el("td", { class: "nota", text: String(r.nota) }),
+        el("td", {}, pill(r.classificacao), el("div", { class: "meta", text: r.revisao === "confirmada" ? "Revisada" : r.revisao === "contestada" ? "Contestada" : "Revisão pendente" })),
+        el("td", { class: "res", text: r.resumo }));
+      const toggle = () => { openId = openId === r.id ? null : r.id; confirmDel = null; renderRanking(); };
+      tr.onclick = toggle;
+      tr.onkeydown = (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggle(); } };
+      tb.append(tr);
+      if (openId === r.id) {
+        const cell = el("td", { colspan: "5" });
+        renderResult(r, cell, { inRanking: true, extra: reviewControls(r) });
+        tb.append(el("tr", { class: "exp" }, cell));
+      }
+    }
+    const c = { baixo: 0, moderado: 0, alto: 0 }; for (const r of rows) c[r.classificacao]++;
+    $("#summary").replaceChildren(
+      el("span", {}, el("b", { text: String(rows.length) }), " avaliações"),
+      el("span", {}, el("b", { text: String(c.baixo) }), " risco baixo"),
+      el("span", {}, el("b", { text: String(c.moderado) }), " moderado"),
+      el("span", {}, el("b", { text: String(c.alto) }), " alto"),
+      rows.length ? el("span", {}, el("b", { text: String(rows.filter((r) => r.revisao === "pendente").length) }), " aguardando revisão") : null);
+    $("#tab-count").textContent = rows.length ? "(" + rows.length + ")" : "";
+    $("#empty").hidden = list.length > 0;
+    $("#empty strong").textContent = rows.length ? "Nada encontrado" : "Nenhuma avaliação ainda";
+    $("#empty span").textContent = rows.length ? "Nenhuma avaliação corresponde à busca ou ao filtro." : "As avaliações feitas na aba Avaliar aparecem aqui, da menor para a maior nota de risco.";
+  }
+  $("#busca").oninput = renderRanking;
+  $("#filtro").onchange = renderRanking;
+
+  fetch("/api/eu").then((r) => r.ok ? r.json() : null).then((u) => u ? showApp(u.nome) : showLogin()).catch(showLogin);
+})();
+</script>
+</body>
+</html>
