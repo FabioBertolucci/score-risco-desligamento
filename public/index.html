@@ -49,6 +49,7 @@ input:focus-visible, textarea:focus-visible, select:focus-visible, button:focus-
 .btn { font: 600 14px var(--f-body); border-radius: 8px; padding: 10px 18px; cursor: pointer; border: 1px solid var(--line); background: var(--surface); color: var(--ink); }
 .btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
 .btn.small { padding: 6px 12px; font-size: 13px; }
+a.btn { text-decoration: none; display: inline-block; }
 .btn.danger { color: var(--high); }
 .btn:disabled { opacity: 0.55; cursor: not-allowed; }
 .actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
@@ -177,6 +178,7 @@ footer { color: var(--muted); font-size: 12.5px; max-width: 80ch; }
           <option value="alto">Risco alto</option>
         </select>
         <button class="btn small" type="button" id="atualizar">Atualizar</button>
+        <a class="btn small" href="/api/avaliacoes.csv" download>Exportar CSV</a>
       </div>
       <div class="summary" id="summary"></div>
       <div class="tablewrap"><table>
