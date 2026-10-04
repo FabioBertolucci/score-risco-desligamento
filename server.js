@@ -106,6 +106,25 @@ app.get("/api/avaliacoes", (_req, res) => {
   res.json(rows.map(toJson));
 });
 
+// Exporta no mesmo formato da planilha "Banco de Talentos". Separador ";" e BOM
+// para o Excel em português abrir as colunas e acentos corretamente.
+const csvCell = (v) => {
+  let s = String(v ?? "");
+  if (/^[=+\-@\t\r]/.test(s)) s = "'" + s; // evita fórmulas ao abrir no Excel/Sheets
+  return /[";\r\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+};
+const dataBR = (iso) => new Date(iso).toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo" });
+
+app.get("/api/avaliacoes.csv", (_req, res) => {
+  const rows = db.prepare("SELECT * FROM avaliacoes ORDER BY criado_em ASC").all();
+  const linhas = [["Data de cadastro", "Código do candidato", "Vaga", "Score de risco", "Avaliador", "Motivo de querer trabalhar aqui"]];
+  for (const r of rows) linhas.push([dataBR(r.criado_em), r.nome, r.vaga, r.nota, r.autor, ""]);
+  const nome = `banco-de-talentos-${new Date().toISOString().slice(0, 10)}.csv`;
+  res.setHeader("Content-Type", "text/csv; charset=utf-8");
+  res.setHeader("Content-Disposition", `attachment; filename="${nome}"`);
+  res.send("\ufeff" + linhas.map((l) => l.map(csvCell).join(";")).join("\r\n") + "\r\n");
+});
+
 // ---------- chamada ao Claude ----------
 const client = MOCK ? null : new Anthropic();
 
