@@ -1,16 +1,16 @@
 /*
   IDENTIDADE VISUAL — troque só este arquivo.
-  As cores abaixo são provisórias. Substitua pelos códigos do manual de marca da empresa:
+  Cores da Lorenzetti: vermelho #B8052D e branco #FFFFFF.
   --brand        cor principal (botões, aba ativa, destaques)
   --brand-ink    cor do texto sobre a cor principal (geralmente branco)
   --brand-soft   versão bem clara da cor principal (fundos de aviso, linha selecionada)
-  --brand-dark   versão escura, usada na faixa do topo
+  --brand-dark   versão escura (botões ao passar o mouse)
 */
 :root {
-  --brand: #1f5f5b;
+  --brand: #B8052D;
   --brand-ink: #ffffff;
-  --brand-soft: #e3efed;
-  --brand-dark: #173f3d;
+  --brand-soft: #fbe7eb;
+  --brand-dark: #8c0422;
   --f-display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
   --f-body: "Instrument Sans", "Segoe UI", system-ui, sans-serif;
 }
