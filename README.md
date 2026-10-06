@@ -3,8 +3,8 @@
 Ferramenta interna de RH. O analista informa o currículo e os comentários da entrevista; o Claude devolve uma nota de risco de desligamento precoce (0 a 100), a classificação (baixo, moderado, alto), o resumo do porquê e as evidências. Todas as avaliações ficam num ranking compartilhado, do menor ao maior risco, com campo de revisão humana.
 
 ## Identidade visual
-- Logo: o site não usa logo por enquanto. Para incluir uma, adicione o arquivo em `public/` e um `<img>` na faixa do topo de `public/index.html`.
-- Cores: edite as 4 variáveis em `public/brand.css` com os códigos do manual de marca.
+- Logo: `public/logo-branco.svg` (na faixa vermelha do topo) e `public/logo.svg` (versão vermelha, usada como ícone da aba).
+- Cores: vermelho Lorenzetti #B8052D e branco, definidos em `public/brand.css`.
 
 ## Rodar
 ```

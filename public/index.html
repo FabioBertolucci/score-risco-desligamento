@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap">
 <link rel="stylesheet" href="brand.css">
+<link rel="icon" href="logo.svg">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
@@ -22,9 +23,13 @@
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
 body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.55 var(--f-body); }
-.bar { background: var(--brand-dark); color: var(--brand-ink); }
+.bar { background: var(--brand); color: var(--brand-ink); }
 .bar .in { max-width: 1040px; margin: 0 auto; padding: 12px 16px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
 .bar .app { font: 600 15px var(--f-body); }
+.bar .logo { height: 22px; width: auto; display: block; }
+.bar .sep { width: 1px; align-self: stretch; background: color-mix(in srgb, var(--brand-ink) 40%, transparent); }
+@media (max-width: 480px) { .bar .sep { display: none; } }
+.btn.primary:hover { background: var(--brand-dark); border-color: var(--brand-dark); }
 .bar .who { margin-left: auto; display: flex; gap: 10px; align-items: center; font-size: 13.5px; }
 .bar .who button { background: transparent; color: inherit; border: 1px solid color-mix(in srgb, var(--brand-ink) 45%, transparent); border-radius: 6px; padding: 5px 10px; font: inherit; cursor: pointer; }
 .wrap { max-width: 1040px; margin: 0 auto; padding-inline: 16px; padding-block: 24px 64px; display: grid; gap: 20px; }
@@ -104,6 +109,8 @@ footer { color: var(--muted); font-size: 12.5px; max-width: 80ch; }
 </head>
 <body>
 <div class="bar"><div class="in">
+  <img class="logo" src="logo-branco.svg" alt="Lorenzetti">
+  <span class="sep" aria-hidden="true"></span>
   <span class="app">Score de Risco de Desligamento</span>
   <span class="who" id="who" hidden><span id="whoName"></span><button type="button" id="sair">Sair</button></span>
 </div></div>
